@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: "DM Sans", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #faf6ee;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4a853;
+  border-radius: 3px;
+}
+
+/* Selection */
+::selection {
+  background: #d4a853;
+  color: #0d0d0d;
+}
+
+/* Skeleton shimmer */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f4ecd8 25%,
+    #faf6ee 50%,
+    #f4ecd8 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Masonry grid */
+.masonry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .masonry-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .masonry-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 0;
+}
+
+@media (min-width: 768px) {
+  .masonry-item {
+    margin-bottom: 0;
+  }
+}
+
+@media (min-width: 1280px) {
+  .masonry-item {
+    margin-bottom: 0;
+  }
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid #d4a853;
+  outline-offset: 2px;
+}
+
+/* Smooth image loading */
+img {
+  transition: opacity 0.3s ease;
+}
+
+/* Navbar blur */
+.navbar-blur {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
