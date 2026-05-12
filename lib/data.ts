@@ -4,37 +4,37 @@ export const heroSlides: HeroSlide[] = [
   {
     id: "h1",
     image:
-      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&q=80",
-    title: "Curated Luxury",
-    subtitle: "Discover pieces that define your aesthetic",
+      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1600&q=80",
+    title: "Nest Beautifully",
+    subtitle: "Curated home décor that tells your story",
   },
   {
     id: "h2",
     image:
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&q=80",
-    title: "Edit Your World",
-    subtitle: "Premium finds for the discerning eye",
+      "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1600&q=80",
+    title: "Style Your Space",
+    subtitle: "Premium pieces for the modern home",
   },
   {
     id: "h3",
     image:
-      "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1600&q=80",
-    title: "Live Beautifully",
+      "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1600&q=80",
+    title: "Live With Intention",
     subtitle: "Objects that elevate everyday moments",
   },
   {
     id: "h4",
     image:
-      "https://images.unsplash.com/photo-1524293568345-75d62c3664f7?w=1600&q=80",
-    title: "Timeless Style",
-    subtitle: "Classics reimagined for the modern era",
+      "https://images.unsplash.com/photo-1600210492493-0946911123ea?w=1600&q=80",
+    title: "Timeless Comfort",
+    subtitle: "Where luxury meets everyday living",
   },
   {
     id: "h5",
     image:
-      "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1600&q=80",
-    title: "The Edit",
-    subtitle: "A thoughtful collection of extraordinary things",
+      "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1600&q=80",
+    title: "The Home Edit",
+    subtitle: "A thoughtful collection for your sanctuary",
   },
 ];
 

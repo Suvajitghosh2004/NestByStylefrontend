@@ -2,14 +2,88 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Maison — Curated Luxury Products",
+  title: {
+    default: "NestByStyle",
+    template: "%s | NestByStyle",
+  },
   description:
-    "Discover and shop premium, hand-curated luxury products. From fashion to home décor, find pieces that elevate everyday living.",
-  keywords: "luxury products, curated shopping, premium lifestyle, home décor",
+    "Discover premium, hand-curated home décor and lifestyle products. Shop beautiful furniture, candles, bedding, ceramics and more. Elevate your living space with NestByStyle.",
+  keywords: [
+    "home decor",
+    "home decoration",
+    "interior design",
+    "home styling",
+    "pinterest home decor",
+    "aesthetic home",
+    "luxury home decor",
+    "minimalist home",
+    "cozy home",
+    "living room decor",
+    "bedroom decor",
+    "kitchen decor",
+    "home accessories",
+    "lifestyle products",
+    "curated home",
+    "premium furniture",
+    "candles",
+    "ceramic decor",
+    "linen bedding",
+    "marble decor",
+    "nestbystyle",
+  ],
+  authors: [{ name: "NestByStyle" }],
+  creator: "NestByStyle",
+  publisher: "NestByStyle",
+  category: "Home & Decor",
+  icons: {
+    icon: [
+      {
+        url: "https://i.pinimg.com/280x280_RS/a7/21/ca/a721cadc5c4c1cc4a8a5e73825d2a1ec.jpg",
+        type: "image/jpeg",
+      },
+    ],
+    shortcut:
+      "https://i.pinimg.com/280x280_RS/a7/21/ca/a721cadc5c4c1cc4a8a5e73825d2a1ec.jpg",
+    apple:
+      "https://i.pinimg.com/280x280_RS/a7/21/ca/a721cadc5c4c1cc4a8a5e73825d2a1ec.jpg",
+  },
   openGraph: {
-    title: "Maison — Curated Luxury Products",
-    description: "Discover premium, hand-curated luxury products.",
+    title: "NestByStyle — Curated Home Décor & Lifestyle",
+    description:
+      "Discover premium, hand-curated home décor. Shop beautiful furniture, ceramics, bedding and more. Elevate your living space.",
     type: "website",
+    siteName: "NestByStyle",
+    locale: "en_US",
+    images: [
+      {
+        url: "https://i.pinimg.com/280x280_RS/a7/21/ca/a721cadc5c4c1cc4a8a5e73825d2a1ec.jpg",
+        width: 280,
+        height: 280,
+        alt: "NestByStyle — Curated Home Décor",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NestByStyle — Curated Home Décor & Lifestyle",
+    description:
+      "Discover premium, hand-curated home décor and lifestyle products.",
+    images: [
+      "https://i.pinimg.com/280x280_RS/a7/21/ca/a721cadc5c4c1cc4a8a5e73825d2a1ec.jpg",
+    ],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: "https://nestbystyle.vercel.app",
   },
 };
 
