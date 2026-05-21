@@ -30,6 +30,7 @@ export default function Footer() {
             </div>
             <p className="text-sm leading-relaxed max-w-xs">
               Amazon home decor deals for Indian homes 🏠
+              This site contains affiliate links. As an Amazon Associate, I earn from qualifying purchases at no extra cost to you.
             </p>
           </div>
 
