@@ -106,7 +106,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body bg-cream-50 text-obsidian-900 antialiased">
+      <body className="font-body bg-cream-50 text-obsidian-900 antialiased" suppressHydrationWarning>
         {children}
       </body>
     </html>

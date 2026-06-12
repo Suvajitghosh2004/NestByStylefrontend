@@ -1,33 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Share2, ShoppingBag, ChevronDown } from "lucide-react";
+import { Share2, ShoppingBag, ChevronDown, ChevronUp } from "lucide-react";
 import { Product } from "@/types";
-import { truncate, shareProduct } from "@/lib/utils";
+import { shareProduct } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { analyticsApi } from "@/lib/api";
 
 interface ProductCardProps {
   product: Product;
   index?: number;
 }
 
-const DESCRIPTION_LIMIT = 90;
-
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
-  const isLong = product.description.length > DESCRIPTION_LIMIT;
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const descRef = useRef<HTMLParagraphElement>(null);
+  const cardRef = useRef<HTMLElement>(null);
+  const viewTracked = useRef(false);
 
-  const displayDesc =
-    !expanded && isLong
-      ? truncate(product.description, DESCRIPTION_LIMIT)
-      : product.description;
+  // ── Check if description actually overflows 2 lines ─────────────────────
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+    // scrollHeight > clientHeight means text overflows the clamped box
+    setIsOverflowing(el.scrollHeight > el.clientHeight + 2);
+  }, [product.description]);
+
+  // ── Intersection Observer — track product view once visible ──────────────
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el || viewTracked.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !viewTracked.current) {
+          viewTracked.current = true;
+          analyticsApi.productView(product.id, product.title);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [product.id, product.title]);
+
+  const handleBuyClick = () => {
+    analyticsApi.buyClicked(product.id, product.title, product.price || "");
+  };
 
   return (
     <motion.article
+      ref={cardRef}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
@@ -95,20 +125,42 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           </p>
         )}
 
-        {/* Description */}
-        <div className="mb-4 flex-1">
-          <p className="text-xs text-obsidian-700/60 leading-relaxed">
-            {displayDesc}
-            {!expanded && isLong && (
-              <button
-                onClick={() => setExpanded(true)}
-                className="inline-flex items-center gap-0.5 text-gold-500 hover:text-gold-600 ml-1 font-medium"
-              >
-                ...more
-                <ChevronDown size={10} />
-              </button>
+        {/* Description — flex-1 so card footer stays pinned */}
+        <div className="mb-4 flex-1 flex flex-col">
+          <div
+            className={cn(
+              "overflow-hidden transition-all duration-300 ease-in-out",
+              expanded ? "max-h-[600px]" : "max-h-[2.8rem]"
             )}
-          </p>
+          >
+            <p
+              ref={descRef}
+              className={cn(
+                "text-xs text-obsidian-700/60 leading-relaxed",
+                !expanded && "line-clamp-2"
+              )}
+            >
+              {product.description}
+            </p>
+          </div>
+
+          {isOverflowing && (
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="inline-flex items-center gap-0.5 text-gold-500 hover:text-gold-600 mt-1 text-xs font-medium self-start"
+              aria-expanded={expanded}
+            >
+              {expanded ? (
+                <>
+                  Less <ChevronUp size={10} />
+                </>
+              ) : (
+                <>
+                  More <ChevronDown size={10} />
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Buy Button */}
@@ -118,6 +170,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           rel="noopener noreferrer"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
+          onClick={handleBuyClick}
           className="flex items-center justify-center gap-2 w-full py-2.5 bg-obsidian-900 hover:bg-obsidian-700 text-white text-xs font-medium tracking-widest uppercase rounded-xl transition-colors duration-300"
         >
           <ShoppingBag size={13} />

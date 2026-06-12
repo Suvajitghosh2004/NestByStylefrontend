@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LogOut, Plus, Pencil, Trash2, X, Save, LayoutGrid,
   ImageIcon, AlertTriangle, Mail, MailOpen, Upload,
-  Link as LinkIcon, MessageSquare, RefreshCw,
+  Link as LinkIcon, MessageSquare, RefreshCw, BarChart2,
+  Loader2,
 } from "lucide-react";
 import { useAuthStore, useProductStore, useMessageStore } from "@/store";
 import { productsApi, messagesApi } from "@/lib/api";
@@ -16,6 +17,9 @@ import { Product } from "@/types";
 type Mode = "list" | "create" | "edit" | "messages";
 const emptyForm = { title: "", description: "", image: "", buyLink: "", category: "Fashion", price: "" };
 const CATEGORIES = ["Fashion", "Home", "Accessories", "Kitchen", "Other"];
+
+const ADMIN_PAGE_INITIAL = 50;
+const ADMIN_PAGE_MORE = 10;
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -38,18 +42,57 @@ export default function AdminDashboard() {
   const [msgLoading, setMsgLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ── Admin product list pagination state ──────────────────────────────────
+  const [adminTotalPages, setAdminTotalPages] = useState(1);
+  const [adminPage, setAdminPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   useEffect(() => {
     if (!isAuthenticated) { router.replace("/admin/login"); return; }
     loadProducts();
   }, [isAuthenticated]);
 
+  // ── Load first 50 products ───────────────────────────────────────────────
   const loadProducts = async () => {
     setProdLoading(true);
     try {
-      const res = await productsApi.getAll();
+      const res = await productsApi.getPaginated({ page: 1, limit: ADMIN_PAGE_INITIAL });
       setProducts(res.data);
+      setAdminTotalPages(res.pagination.pages);
+      setAdminPage(1);
     } catch { } finally { setProdLoading(false); }
   };
+
+  // ── Load next 10 products ────────────────────────────────────────────────
+  const handleAdminLoadMore = useCallback(async () => {
+    if (loadingMore) return;
+    const nextPage = adminPage + 1;
+    setLoadingMore(true);
+    try {
+      // Each subsequent page is 10 products, offset after the first 50
+      // We calculate skip as: ADMIN_PAGE_INITIAL + (nextPage - 2) * ADMIN_PAGE_MORE
+      // Easier: just use a growing limit (fetch cumulative) and take diff
+      // Actually simplest: use a custom page scheme:
+      // page 1 = 50 products (limit=50)
+      // page 2 = next 10 (skip=50, limit=10)  → express page = 2 with limit=10 AFTER adjusting skip
+      // We rely on the backend skip = (page-1)*limit, so we switch to limit=10 after page 1
+      // Strategy: track totalFetched, then fetch with skip=totalFetched&limit=10
+      const skip = ADMIN_PAGE_INITIAL + (nextPage - 2) * ADMIN_PAGE_MORE;
+      // Use raw fetch with skip param (backend supports page/limit → skip=(page-1)*limit)
+      // We'll pass a large page number that maps to the right skip
+      // skip = (page-1)*limit  =>  page = skip/limit + 1
+      const backendPage = Math.floor(skip / ADMIN_PAGE_MORE) + 1;
+      const res = await productsApi.getPaginated({ page: backendPage, limit: ADMIN_PAGE_MORE });
+      setProducts([...products, ...res.data]);
+      setAdminPage(nextPage);
+      // recalculate total pages relative to our paging scheme
+      const remaining = res.pagination.total - ADMIN_PAGE_INITIAL;
+      const extraPages = remaining > 0 ? Math.ceil(remaining / ADMIN_PAGE_MORE) : 0;
+      setAdminTotalPages(1 + extraPages);
+    } catch { } finally { setLoadingMore(false); }
+  }, [adminPage, loadingMore, products, setProducts]);
+
+  const adminAllLoaded = adminPage >= adminTotalPages;
 
   const loadMessages = async () => {
     setMsgLoading(true);
@@ -97,6 +140,7 @@ export default function AdminDashboard() {
         await productsApi.update(editId, fd);
       }
 
+      // Reset to top after save
       await loadProducts();
       setMode("list");
       setForm(emptyForm);
@@ -123,7 +167,8 @@ export default function AdminDashboard() {
   const handleDelete = async (id: string) => {
     try {
       await productsApi.delete(id);
-      setProducts(products.filter((p) => p.id !== id));
+      // Reset from top so list is consistent
+      await loadProducts();
     } catch { } finally { setDeleteTarget(null); }
   };
 
@@ -187,6 +232,11 @@ export default function AdminDashboard() {
             <MessageSquare size={16} />Messages
             {unreadCount > 0 && <span className="ml-auto bg-gold-400 text-obsidian-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{unreadCount}</span>}
           </button>
+          {/* Analytics nav link */}
+          <button onClick={() => router.push("/admin/analytics")}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors text-white/60 hover:text-white hover:bg-white/5">
+            <BarChart2 size={16} />Analytics
+          </button>
         </nav>
         <div className="p-4 border-t border-white/10">
           <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/60 hover:text-red-400 hover:bg-red-400/10 transition-colors">
@@ -199,6 +249,7 @@ export default function AdminDashboard() {
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-obsidian-900 px-4 py-4 flex items-center justify-between">
         <span className="font-display text-white tracking-wider">Admin</span>
         <div className="flex items-center gap-2">
+          <button onClick={() => router.push("/admin/analytics")} className="p-2 text-white/60"><BarChart2 size={20} /></button>
           <button onClick={() => setMode("messages")} className="p-2 text-white/60 relative">
             <MessageSquare size={20} />
             {unreadCount > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-gold-400 rounded-full" />}
@@ -217,7 +268,7 @@ export default function AdminDashboard() {
                 {mode === "list" ? "Products" : mode === "create" ? "Create Post" : mode === "edit" ? "Edit Post" : "Messages"}
               </h1>
               <p className="text-sm text-obsidian-700/50 mt-1">
-                {mode === "list" ? `${products.length} products` : mode === "messages" ? `${messages.length} messages · ${unreadCount} unread` : "Fill in the details below"}
+                {mode === "list" ? `${products.length} products loaded` : mode === "messages" ? `${messages.length} messages · ${unreadCount} unread` : "Fill in the details below"}
               </p>
             </div>
             {mode === "list" && (
@@ -387,22 +438,45 @@ export default function AdminDashboard() {
                 <div className="text-center py-20 text-obsidian-700/40 flex flex-col items-center gap-3">
                   <ImageIcon size={40} strokeWidth={1} /><p>No products yet. Create your first post.</p>
                 </div>
-              ) : products.map((p, i) => (
-                <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                  className="flex items-center gap-4 bg-white border border-cream-200 rounded-2xl p-4 hover:shadow-card transition-shadow">
-                  <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-cream-100 flex-shrink-0">
-                    <Image src={p.image} alt={p.title} fill className="object-cover" unoptimized />
+              ) : (
+                <>
+                  {products.map((p, i) => (
+                    <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i * 0.02, 0.4) }}
+                      className="flex items-center gap-4 bg-white border border-cream-200 rounded-2xl p-4 hover:shadow-card transition-shadow">
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-cream-100 flex-shrink-0">
+                        <Image src={p.image} alt={p.title} fill className="object-cover" unoptimized />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-obsidian-900 text-sm truncate">{p.title}</p>
+                        <p className="text-xs text-obsidian-700/40 mt-0.5">{p.category}{p.price && ` · ${p.price}`}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button onClick={() => handleEdit(p)} className="p-2 text-obsidian-700/40 hover:text-gold-500 hover:bg-gold-400/10 rounded-lg transition-colors"><Pencil size={15} /></button>
+                        <button onClick={() => setDeleteTarget(p.id)} className="p-2 text-obsidian-700/40 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"><Trash2 size={15} /></button>
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {/* Admin Load More */}
+                  <div className="flex justify-center pt-4 pb-8">
+                    {!adminAllLoaded ? (
+                      <button
+                        onClick={handleAdminLoadMore}
+                        disabled={loadingMore}
+                        className="flex items-center gap-2 px-6 py-2.5 border border-obsidian-900/20 hover:border-obsidian-900/50 text-obsidian-700 text-xs font-medium tracking-widest uppercase rounded-xl transition-colors disabled:opacity-60"
+                      >
+                        {loadingMore ? (
+                          <><Loader2 size={13} className="animate-spin" />Loading…</>
+                        ) : (
+                          "Load More"
+                        )}
+                      </button>
+                    ) : products.length > 0 && (
+                      <p className="text-xs text-obsidian-700/30 tracking-widest uppercase">All products loaded</p>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-obsidian-900 text-sm truncate">{p.title}</p>
-                    <p className="text-xs text-obsidian-700/40 mt-0.5">{p.category}{p.price && ` · ${p.price}`}</p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <button onClick={() => handleEdit(p)} className="p-2 text-obsidian-700/40 hover:text-gold-500 hover:bg-gold-400/10 rounded-lg transition-colors"><Pencil size={15} /></button>
-                    <button onClick={() => setDeleteTarget(p.id)} className="p-2 text-obsidian-700/40 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"><Trash2 size={15} /></button>
-                  </div>
-                </motion.div>
-              ))}
+                </>
+              )}
             </div>
           )}
         </div>
