@@ -2,17 +2,29 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Instagram, Twitter, Pin, Facebook } from "lucide-react";
+import { Instagram } from "lucide-react";
 import { FaPinterest } from "react-icons/fa";
 
 const footerLinks = [
   { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
+  { href: "/privacy-policy", label: "Privacy Policy" },
 ];
 
 const socialLinks = [
-  { icon: FaPinterest, href: "https://pin.it/5XjdsY9s4", label: "Pinterest" },
+  {
+    icon: FaPinterest,
+    href: "https://in.pinterest.com/NestByStyle/",
+    label: "Pinterest",
+  },
+  {
+    icon: Instagram,
+    href: "https://www.instagram.com/nestbystyle/",
+    label: "Instagram",
+  },
 ];
+
 export default function Footer() {
   return (
     <footer className="bg-obsidian-900 text-white/70">
@@ -22,15 +34,19 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7">
-                <img src="https://i.pinimg.com/280x280_RS/a7/21/ca/a721cadc5c4c1cc4a8a5e73825d2a1ec.jpg" alt="logo" className="rounded-full"/>
+                <img
+                  src="https://i.pinimg.com/280x280_RS/a7/21/ca/a721cadc5c4c1cc4a8a5e73825d2a1ec.jpg"
+                  alt="logo"
+                  className="rounded-full"
+                />
               </div>
               <span className="font-display text-xl font-medium text-white tracking-wider">
                 NestByStyle
               </span>
             </div>
+
             <p className="text-sm leading-relaxed max-w-xs">
               Amazon home decor deals for Indian homes 🏠
-              This site contains affiliate links. As an Amazon Associate, I earn from qualifying purchases at no extra cost to you.
             </p>
           </div>
 
@@ -39,6 +55,7 @@ export default function Footer() {
             <h4 className="text-white text-xs font-medium tracking-widest uppercase">
               Navigate
             </h4>
+
             <ul className="space-y-3">
               {footerLinks.map((link) => (
                 <li key={link.href}>
@@ -56,18 +73,21 @@ export default function Footer() {
           {/* Social */}
           <div className="space-y-4">
             <h4 className="text-white text-xs font-medium tracking-widest uppercase">
-              Follow
+              Follow Us
             </h4>
+
             <div className="flex gap-4">
               {socialLinks.map(({ icon: Icon, href, label }) => (
                 <motion.a
                   key={label}
                   href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={label}
                   whileHover={{ y: -2, color: "#D4A853" }}
                   className="text-white/60 hover:text-gold-400 transition-colors duration-200"
                 >
-                  <Icon size={18} />
+                  <Icon size={20} />
                 </motion.a>
               ))}
             </div>
@@ -79,6 +99,7 @@ export default function Footer() {
           <p className="text-xs tracking-wide">
             © {new Date().getFullYear()} NestByStyle. All rights reserved.
           </p>
+
           <p className="text-xs">
             Crafted with intention.
           </p>

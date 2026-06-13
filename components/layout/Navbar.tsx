@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -30,7 +31,7 @@ export default function Navbar() {
   if (isAdmin) return null;
 
   // Pages with light/white hero background need dark navbar text from the start
-  const isLightPage = pathname === "/contact" || pathname.startsWith("/products");
+  const isLightPage = pathname === "/contact" || pathname === "/about" || pathname === "/privacy-policy" || pathname.startsWith("/products");
 
   return (
     <>

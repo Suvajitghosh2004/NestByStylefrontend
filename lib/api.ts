@@ -36,7 +36,7 @@ async function apiFetch<T>(
   return data as T;
 }
 
-// ── Auth ─────────────────────────────────────────────────────────────────────
+// ── Auth ──────────────────────────────────────────────────────────────────────
 export const authApi = {
   login: (username: string, password: string) =>
     apiFetch<{ success: boolean; token: string; admin: { username: string } }>(
@@ -53,46 +53,32 @@ export const authApi = {
     ),
 };
 
-// ── Products ─────────────────────────────────────────────────────────────────
-export interface PaginatedProductsResponse {
-  success: boolean;
-  data: import("@/types").Product[];
-  pagination: {
-    total: number;
-    page: number;
-    pages: number;
-    limit: number;
-  };
-}
-
+// ── Products ──────────────────────────────────────────────────────────────────
 export const productsApi = {
-  // Paginated version — used by homepage & admin
-  getPaginated: (params?: {
-    category?: string;
-    search?: string;
-    page?: number;
-    limit?: number;
-  }) => {
-    const qs = new URLSearchParams(
-      Object.entries({
-        ...(params?.category ? { category: params.category } : {}),
-        ...(params?.search ? { search: params.search } : {}),
-        page: String(params?.page ?? 1),
-        limit: String(params?.limit ?? 10),
-      }) as [string, string][]
-    ).toString();
-    return apiFetch<PaginatedProductsResponse>(`/api/products?${qs}`);
-  },
-
-  // Legacy — kept for backward compat (product detail page related products, etc.)
   getAll: (params?: { category?: string; search?: string }) => {
     const qs = new URLSearchParams(
       Object.entries(params || {}).filter(([, v]) => v) as [string, string][]
     ).toString();
-    return apiFetch<{ success: boolean; data: import("@/types").Product[] }>(
-      `/api/products${qs ? `?${qs}` : ""}`
-    );
+
+    return apiFetch<{
+      success: boolean;
+      data: import("@/types").Product[];
+    }>(`/api/products${qs ? `?${qs}` : ""}`);
   },
+
+  // ✅ Added for Admin Dashboard pagination
+  getPaginated: (params: { page: number; limit: number }) =>
+    apiFetch<{
+      success: boolean;
+      data: import("@/types").Product[];
+      pagination: {
+        page: number;
+        pages: number;
+        total: number;
+      };
+    }>(
+      `/api/products?page=${params.page}&limit=${params.limit}`
+    ),
 
   getOne: (id: string) =>
     apiFetch<{
@@ -102,24 +88,33 @@ export const productsApi = {
     }>(`/api/products/${id}`),
 
   create: (formData: FormData) =>
-    apiFetch<{ success: boolean; data: import("@/types").Product }>(
-      "/api/products",
-      { method: "POST", body: formData }
-    ),
+    apiFetch<{
+      success: boolean;
+      data: import("@/types").Product;
+    }>("/api/products", {
+      method: "POST",
+      body: formData,
+    }),
 
   update: (id: string, formData: FormData) =>
-    apiFetch<{ success: boolean; data: import("@/types").Product }>(
-      `/api/products/${id}`,
-      { method: "PUT", body: formData }
-    ),
+    apiFetch<{
+      success: boolean;
+      data: import("@/types").Product;
+    }>(`/api/products/${id}`, {
+      method: "PUT",
+      body: formData,
+    }),
 
   delete: (id: string) =>
-    apiFetch<{ success: boolean; message: string }>(`/api/products/${id}`, {
+    apiFetch<{
+      success: boolean;
+      message: string;
+    }>(`/api/products/${id}`, {
       method: "DELETE",
     }),
 };
 
-// ── Messages ─────────────────────────────────────────────────────────────────
+// ── Messages ──────────────────────────────────────────────────────────────────
 export const messagesApi = {
   send: (data: { name: string; email: string; message: string }) =>
     apiFetch<{ success: boolean; message: string }>("/api/messages", {
@@ -145,8 +140,7 @@ export const messagesApi = {
     }),
 };
 
-// ── Analytics ─────────────────────────────────────────────────────────────────
-// Fire-and-forget helpers — never throw, never block
+// ── Analytics (fire-and-forget) ───────────────────────────────────────────────
 const API = API_URL;
 
 export const analyticsApi = {
